@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기분 그림 그리기</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            width: 250px;
+            margin-right: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .mood-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 기분 그림 그리기</h1>
+
+        <div class="input-section">
+            <input type="text" id="moodInput" placeholder="지금 기분을 입력하세요..." />
+            <button onclick="drawMoodPicture()">그림 그리기</button>
+        </div>
+
+        <canvas id="moodCanvas" width="500" height="400"></canvas>
+
+        <div id="moodInfo" class="mood-info">
+            <p id="moodDescription"></p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('moodCanvas');
+        const ctx = canvas.getContext('2d');
+        const moodInfo = document.getElementById('moodInfo');
+        const moodDescription = document.getElementById('moodDescription');
+
+        // 기분별 색상과 패턴 정의
+        const moodPatterns = {
+            '행복': {
+                colors: ['#FFD700', '#FFA500', '#FF6347'],
+                shapes: ['sun', 'flower', 'star'],
+                description: '밝고 따뜻한 색상으로 태양과 꽃들을 그려냅니다!'
+            },
+            '기쁨': {
+                colors: ['#FFD700', '#FFA500', '#FF6347'],
+                shapes: ['sun', 'flower', 'star'],
+                description: '밝고 따뜻한 색상으로 태양과 꽃들을 그려냅니다!'
+            },
+            '슬픔': {
+                colors: ['#4682B4', '#6495ED', '#87CEEB'],
+                shapes: ['rain', 'cloud', 'tear'],
+                description: '차분한 파란색으로 비와 구름을 표현합니다.'
+            },
+            '우울': {
+                colors: ['#696969', '#778899', '#2F4F4F'],
+                shapes: ['cloud', 'rain', 'mountain'],
+                description: '어두운 회색 톤으로 흐린 날씨를 나타냅니다.'
+            },
+            '화남': {
+                colors: ['#DC143C', '#B22222', '#8B0000'],
+                shapes: ['lightning', 'fire', 'zigzag'],
+                description: '강렬한 빨간색으로 불꽃과 번개를 그립니다!'
+            },
+            '분노': {
+                colors: ['#DC143C', '#B22222', '#8B0000'],
+                shapes: ['lightning', 'fire', 'zigzag'],
+                description: '강렬한 빨간색으로 불꽃과 번개를 그립니다!'
+            },
+            '평온': {
+                colors: ['#98FB98', '#90EE90', '#87CEEB'],
+                shapes: ['wave', 'tree', 'mountain'],
+                description: '자연의 초록색과 파란색으로 평화로운 풍경을 만듭니다.'
+            },
+            '불안': {
+                colors: ['#800080', '#9370DB', '#8A2BE2'],
+                shapes: ['spiral', 'zigzag', 'scattered'],
+                description: '보라색 톤으로 불규칙한 패턴을 표현합니다.'
+            },
+            '설렘': {
+                colors: ['#FF69B4', '#FFB6C1', '#FFC0CB'],
+                shapes: ['heart', 'butterfly', 'flower'],
+                description: '분홍색으로 하트와 나비를 그려냅니다!'
+            },
+            '외로움': {
+                colors: ['#483D8B', '#2F4F4F', '#696969'],
+                shapes: ['single_tree', 'moon', 'star'],
+                description: '어두운 색조로 홀로 서있는 나무와 달을 그립니다.'
+            }
+        };
+
+        function drawMoodPicture() {
+            const mood = document.getElementById('moodInput').value.trim();
+
+            if (!mood) {
+                alert('기분을 입력해주세요!');
+                return;
+            }
+
+            // 캔버스 초기화
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 기분에 맞는 패턴 찾기
+            let pattern = null;
+            for (let key in moodPatterns) {
+                if (mood.includes(key)) {
+                    pattern = moodPatterns[key];
+                    break;
+                }
+            }
+
+            // 기본 패턴 (입력된 기분이 정의되지 않은 경우)
+            if (!pattern) {
+                pattern = {
+                    colors: ['#87CEEB', '#98FB98', '#DDA0DD'],
+                    shapes: ['circle', 'wave', 'dot'],
+                    description: '다양한 색상으로 추상적인 패턴을 그립니다.'
+                };
+            }
+
+            // 배경 그라디언트
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, pattern.colors[0] + '30');
+            gradient.addColorStop(1, pattern.colors[1] + '30');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 도형 그리기
+            drawShapes(pattern);
+
+            // 정보 표시
+            moodDescription.textContent = pattern.description;
+            moodInfo.style.display = 'block';
+        }
+
+        function drawShapes(pattern) {
+            const shapes = pattern.shapes;
+            const colors = pattern.colors;
+
+            for (let i = 0; i < 8; i++) {
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const x = Math.random() * (canvas.width - 100) + 50;
+                const y = Math.random() * (canvas.height - 100) + 50;
+                const size = Math.random() * 40 + 20;
+
+                ctx.fillStyle = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+
+                switch(shape) {
+                    case 'sun':
+                        drawSun(x, y, size);
+                        break;
+                    case 'flower':
+                        drawFlower(x, y, size);
+                        break;
+                    case 'star':
+                        drawStar(x, y, size);
+                        break;
+                    case 'rain':
+                        drawRain(x, y, size);
+                        break;
+                    case 'cloud':
+                        drawCloud(x, y, size);
+                        break;
+                    case 'lightning':
+                        drawLightning(x, y, size);
+                        break;
+                    case 'fire':
+                        drawFire(x, y, size);
+                        break;
+                    case 'wave':
+                        drawWave(x, y, size);
+                        break;
+                    case 'tree':
+                        drawTree(x, y, size);
+                        break;
+                    case 'heart':
+                        drawHeart(x, y, size);
+                        break;
+                    case 'butterfly':
+                        drawButterfly(x, y, size);
+                        break;
+                    case 'moon':
+                        drawMoon(x, y, size);
+                        break;
+                    case 'spiral':
+                        drawSpiral(x, y, size);
+                        break;
+                    case 'zigzag':
+                        drawZigzag(x, y, size);
+                        break;
+                    default:
+                        drawCircle(x, y, size);
+                }
+            }
+        }
+
+        function drawSun(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size/2, 0, 2 * Math.PI);
+            ctx.fill();
+
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI) / 4;
+                ctx.beginPath();
+                ctx.moveTo(x + Math.cos(angle) * size/2, y + Math.sin(angle) * size/2);
+                ctx.lineTo(x + Math.cos(angle) * size, y + Math.sin(angle) * size);
+                ctx.stroke();
+            }
+        }
+
+        function drawFlower(x, y, size) {
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                const angle = (i * Math.PI) / 3;
+                const petalX = x + Math.cos(angle) * size/3;
+                const petalY = y + Math.sin(angle) * size/3;
+                ctx.arc(petalX, petalY, size/4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, size/6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+        }
+
+        function drawStar(x, y, size) {
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI) / 5 - Math.PI/2;
+                const outerX = x + Math.cos(angle) * size/2;
+                const outerY = y + Math.sin(angle) * size/2;
+
+                if (i === 0) ctx.moveTo(outerX, outerY);
+                else ctx.lineTo(outerX, outerY);
+
+                const innerAngle = angle + Math.PI/5;
+                const innerX = x + Math.cos(innerAngle) * size/4;
+                const innerY = y + Math.sin(innerAngle) * size/4;
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawRain(x, y, size) {
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x + i * 10, y);
+                ctx.lineTo(x + i * 10, y + size);
+                ctx.stroke();
+            }
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size/3, 0, 2 * Math.PI);
+            ctx.arc(x + size/3, y, size/4, 0, 2 * Math.PI);
+            ctx.arc(x - size/3, y, size/4, 0, 2 * Math.PI);
+            ctx.arc(x, y - size/4, size/3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawLightning(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + size/4, y + size/3);
+            ctx.lineTo(x - size/4, y + size/3);
+            ctx.lineTo(x, y + size);
+            ctx.stroke();
+        }
+
+        function drawFire(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size);
+            ctx.quadraticCurveTo(x - size/2, y + size/2, x, y);
+            ctx.quadraticCurveTo(x + size/2, y + size/2, x, y + size);
+            ctx.fill();
+        }
+
+        function drawWave(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x - size, y);
+            for (let i = 0; i <= size * 2; i += 10) {
+                ctx.lineTo(x - size + i, y + Math.sin(i / 10) * 10);
+            }
+            ctx.stroke();
+        }
+
+        function drawTree(x, y, size) {
+            ctx.beginPath();
+            ctx.rect(x - 5, y, 10, size/2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x, y - size/4, size/3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawHeart(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size/4);
+            ctx.bezierCurveTo(x - size/2, y - size/4, x - size, y + size/8, x, y + size/2);
+            ctx.bezierCurveTo(x + size, y + size/8, x + size/2, y - size/4, x, y + size/4);
+            ctx.fill();
+        }
+
+        function drawButterfly(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x - size/4, y - size/4, size/6, 0, 2 * Math.PI);
+            ctx.arc(x + size/4, y - size/4, size/6, 0, 2 * Math.PI);
+            ctx.arc(x - size/4, y + size/4, size/8, 0, 2 * Math.PI);
+            ctx.arc(x + size/4, y + size/4, size/8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x, y - size/2);
+            ctx.lineTo(x, y + size/2);
+            ctx.stroke();
+        }
+
+        function drawMoon(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size/2, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#f0f0f0';
+            ctx.beginPath();
+            ctx.arc(x + size/6, y - size/6, size/2, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawSpiral(x, y, size) {
+            ctx.beginPath();
+            let angle = 0;
+            let radius = 0;
+            ctx.moveTo(x, y);
+
+            while (radius < size/2) {
+                angle += 0.1;
+                radius += 0.5;
+                const spiralX = x + Math.cos(angle) * radius;
+                const spiralY = y + Math.sin(angle) * radius;
+                ctx.lineTo(spiralX, spiralY);
+            }
+            ctx.stroke();
+        }
+
+        function drawZigzag(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x - size/2, y);
+            for (let i = 0; i < 5; i++) {
+                const zigX = x - size/2 + (i * size/4);
+                const zigY = y + (i % 2 === 0 ? -size/4 : size/4);
+                ctx.lineTo(zigX, zigY);
+            }
+            ctx.stroke();
+        }
+
+        function drawCircle(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size/2, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // 엔터키로 그림 그리기
+        document.getElementById('moodInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                drawMoodPicture();
+            }
+        });
+    </script>
+</body>
+</html>

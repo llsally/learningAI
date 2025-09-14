@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일과 체크 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .score-display {
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-display h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .score-display p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-left: 5px solid #ddd;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .task-item.completed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .task-points {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .add-task-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .add-task-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .add-task-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .add-task-points {
+            width: 80px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .add-task-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 일과 체크 앱</h1>
+
+        <div class="score-display">
+            <h2 id="currentScore">0점</h2>
+            <p id="maxScore">최대 0점</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <ul class="task-list" id="taskList">
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" data-points="10">
+                <div class="task-content">
+                    <div class="task-name">아침 운동하기</div>
+                </div>
+                <span class="task-points">10점</span>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" data-points="15">
+                <div class="task-content">
+                    <div class="task-name">독서 30분</div>
+                </div>
+                <span class="task-points">15점</span>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" data-points="20">
+                <div class="task-content">
+                    <div class="task-name">업무 완료</div>
+                </div>
+                <span class="task-points">20점</span>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" data-points="10">
+                <div class="task-content">
+                    <div class="task-name">물 8잔 마시기</div>
+                </div>
+                <span class="task-points">10점</span>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" data-points="15">
+                <div class="task-content">
+                    <div class="task-name">일기 쓰기</div>
+                </div>
+                <span class="task-points">15점</span>
+            </li>
+        </ul>
+
+        <div class="add-task-section">
+            <h3>새 할 일 추가</h3>
+            <div class="add-task-form">
+                <input type="text" class="add-task-input" id="newTaskName" placeholder="새 할 일을 입력하세요">
+                <input type="number" class="add-task-points" id="newTaskPoints" placeholder="점수" min="1" max="100" value="10">
+                <button class="add-task-btn" onclick="addNewTask()">추가</button>
+            </div>
+            <button class="reset-btn" onclick="resetTasks()">모든 체크 초기화</button>
+        </div>
+    </div>
+
+    <script>
+        function updateScore() {
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            let currentScore = 0;
+            let maxScore = 0;
+
+            checkboxes.forEach(checkbox => {
+                const points = parseInt(checkbox.dataset.points);
+                maxScore += points;
+                if (checkbox.checked) {
+                    currentScore += points;
+                }
+            });
+
+            document.getElementById('currentScore').textContent = `${currentScore}점`;
+            document.getElementById('maxScore').textContent = `최대 ${maxScore}점`;
+
+            const progressPercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${progressPercentage}%`;
+        }
+
+        function addTaskEventListeners() {
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const taskItem = this.closest('.task-item');
+                    if (this.checked) {
+                        taskItem.classList.add('completed');
+                    } else {
+                        taskItem.classList.remove('completed');
+                    }
+                    updateScore();
+                });
+            });
+        }
+
+        function addNewTask() {
+            const taskName = document.getElementById('newTaskName').value.trim();
+            const taskPoints = parseInt(document.getElementById('newTaskPoints').value);
+
+            if (!taskName) {
+                alert('할 일을 입력해주세요!');
+                return;
+            }
+
+            if (!taskPoints || taskPoints < 1 || taskPoints > 100) {
+                alert('1-100 사이의 점수를 입력해주세요!');
+                return;
+            }
+
+            const taskList = document.getElementById('taskList');
+            const newTaskItem = document.createElement('li');
+            newTaskItem.className = 'task-item';
+            newTaskItem.innerHTML = `
+                <input type="checkbox" class="task-checkbox" data-points="${taskPoints}">
+                <div class="task-content">
+                    <div class="task-name">${taskName}</div>
+                </div>
+                <span class="task-points">${taskPoints}점</span>
+            `;
+
+            taskList.appendChild(newTaskItem);
+
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskPoints').value = '10';
+
+            addTaskEventListeners();
+            updateScore();
+        }
+
+        function resetTasks() {
+            if (confirm('모든 체크를 초기화하시겠습니까?')) {
+                const checkboxes = document.querySelectorAll('.task-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.closest('.task-item').classList.remove('completed');
+                });
+                updateScore();
+            }
+        }
+
+        document.getElementById('newTaskName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addNewTask();
+            }
+        });
+
+        addTaskEventListeners();
+        updateScore();
+    </script>
+</body>
+</html>
